@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Sorting Ceremony</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #2d1a1a, #3d2222, #1a0f0f);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body.has-background {
+            background-image: url('maimonides-background.jpg');
+            background-size: cover;
+            background-position: center 20%;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        body.has-background::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(45, 26, 26, 0.7);
+            z-index: -1;
+        }
+
+        /* Intro Sequence Styles */
+        .intro-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .intro-container.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-out 1s;
+        }
+
+        /* Intro Quote */
+        .intro-quote {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 30;
+            max-width: 80%;
+            opacity: 0;
+            animation: fadeInQuote 1.5s ease-out 0.5s forwards, fadeOutQuote 1.5s ease-out 5.5s forwards;
+        }
+
+        .quote-text {
+            font-size: 2rem;
+            font-style: italic;
+            color: #FFFFFF;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .quote-author {
+            font-size: 1.2rem;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Background that gets revealed */
+        .revealed-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('maimonides-background.jpg');
+            background-size: cover;
+            background-position: center 20%;
+            background-repeat: no-repeat;
+        }
+
+        /* Curtain PNG files */
+        .curtain-left, .curtain-right {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 10;
+            transition: transform 2s ease-in-out;
+        }
+
+        .curtain-left {
+            left: 0;
+            background: #2d1a1a url('MaimonidesCurtainsReveal.png') left center;
+            background-size: 200% 100%;
+            animation: slideLeft 2s ease-in-out 7.5s forwards;
+        }
+
+        .curtain-right {
+            right: 0;
+            background: #3d2222 url('MaimonidesCurtainsReveal.png') right center;
+            background-size: 200% 100%;
+            animation: slideRight 2s ease-in-out 7.5s forwards;
+        }
+
+        .debug-indicator {
+            display: none;
+        }
+
+        .superimposed-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            text-align: center;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+            pointer-events: none;
+        }
+
+        .superimposed-content.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+
+        .ceremony-title {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #DC143C, #B22222, #DC143C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            filter: drop-shadow(0 0 10px rgba(220, 20, 60, 0.5));
+        }
+
+        .intro-coat-of-arms {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(45deg, #DC143C, #B22222);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: #FFD700;
+            box-shadow: 0 0 30px rgba(220, 20, 60, 0.6);
+            border: 3px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .proceed-button {
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            color: #ffffff;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .proceed-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.5);
+            background: linear-gradient(45deg, #A0522D, #8B4513);
+        }
+
+        .proceed-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(139, 69, 19, 0.4);
+        }
+
+        /* Main Content Styles */
+        .main-container {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1.5s ease-out;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .main-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+        }
+
+        .welcome-title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 2px;
+            -webkit-text-stroke: 2px #DC143C;
+            text-stroke: 2px #DC143C;
+            filter: drop-shadow(0 0 20px #DC143C) drop-shadow(0 0 40px #DC143C);
+        }
+
+        .maimonides-portrait-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 4rem;
+            padding: 2rem;
+        }
+
+        .maimonides-portrait {
+            width: 400px;
+            height: 500px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #666;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255, 215, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .maimonides-portrait img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .content-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .content-section h2 {
+            color: #DC143C;
+            margin-bottom: 2rem;
+            font-size: 3rem;
+            text-align: center;
+        }
+
+        .content-section h3 {
+            color: #DC143C;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .content-section p {
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: #ffffff;
+            margin: 2rem auto;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a2e;
+            font-size: 1rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .hexagon-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin: 4rem 0;
+            padding: 2rem;
+        }
+
+        .hexagon-item {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .hexagon {
+            width: 150px;
+            height: 130px;
+            background: #3d2222;
+            position: relative;
+            margin: 0 auto 1rem;
+            transform: rotate(30deg);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hexagon::before,
+        .hexagon::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 130px;
+            background: #3d2222;
+            border-radius: 20px;
+        }
+
+        .hexagon::before {
+            transform: rotate(-60deg);
+        }
+
+        .hexagon::after {
+            transform: rotate(60deg);
+        }
+
+        .hexagon-content {
+            position: relative;
+            z-index: 2;
+            transform: rotate(-30deg);
+            color: #ffffff;
+            font-size: 2rem;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+        }
+
+        .hexagon-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: transparent !important;
+            border: none;
+            mix-blend-mode: normal;
+            opacity: 1;
+        }
+
+        .house-colors {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-dot {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-crimson-red {
+            background: #DC143C;
+        }
+
+        .color-lion-gold {
+            background: #FFD700;
+        }
+
+        .color-royal-orange {
+            background: #FF8C00;
+        }
+
+        .hexagon-label {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Animations */
+        @keyframes fadeInQuote {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) translateY(0);
+            }
+        }
+
+        @keyframes fadeOutQuote {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(-20px);
+            }
+        }
+
+        @keyframes slideLeft {
+            to {
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes slideRight {
+            to {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .ceremony-title {
+                font-size: 2rem;
+            }
+            
+            .welcome-title {
+                font-size: 2.5rem;
+                -webkit-text-stroke: 1.5px #DC143C;
+                text-stroke: 1.5px #DC143C;
+            }
+            
+            .maimonides-portrait {
+                width: 300px;
+                height: 375px;
+            }
+            
+            .content-section {
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
+            
+            .content-section h2 {
+                font-size: 2rem;
+            }
+            
+            .hexagon-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .hexagon {
+                width: 120px;
+                height: 104px;
+            }
+            
+            .hexagon::before,
+            .hexagon::after {
+                width: 120px;
+                height: 104px;
+            }
+            
+            .hexagon-content {
+                width: 90px;
+                height: 90px;
+                font-size: 1.5rem;
+            }
+            
+            .color-dot {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .quote-text {
+                font-size: 1.5rem;
+            }
+            
+            .quote-author {
+                font-size: 1rem;
+            }
+            
+            .intro-coat-of-arms {
+                width: 120px;
+                height: 120px;
+                font-size: 3rem;
+            }
+            
+            .proceed-button {
+                padding: 0.8rem 2rem;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body class="has-background">
+    <!-- Audio for reveal -->
+    <audio id="revealAudio" preload="auto">
+        <source src="maimonides-reveal-music.mp3" type="audio/mpeg">
+        <source src="maimonides-reveal-music.wav" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Intro Sequence -->
+    <div class="intro-container" id="introContainer">
+        <div class="debug-indicator" id="debugIndicator">Phase: Starting...</div>
+        
+        <div class="intro-quote">
+            <div class="quote-text">"Teach thy tongue to say 'I do not know' and thou shalt progress."</div>
+        </div>
+        
+        <div class="revealed-background"></div>
+        <div class="curtain-left"></div>
+        <div class="curtain-right"></div>
+        
+        <div class="superimposed-content" id="superimposedContent">
+            <h1 class="ceremony-title" id="introHouseName">House Maimonides</h1>
+            <div class="intro-coat-of-arms">  
+                <img src="MaimonidesCoA.png" alt="Coat of Arms" />
+            </div>
+            <button class="proceed-button" onclick="proceedToMainContent()">Proceed</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container" id="mainContainer">
+        <!-- Welcome Header -->
+        <div class="welcome-header">
+            <h1 class="welcome-title">WELCOME TO HOUSE MAIMONIDES!</h1>
+        </div>
+
+        <!-- Portrait Section -->
+        <div class="maimonides-portrait-section">
+            <div class="maimonides-portrait">
+                <img src="maimonides-portrait.png" alt="Moses Maimonides" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'color: #666; font-size: 1.2rem; text-align: center;\'>Portrait of Moses Maimonides<br><small>Replace with maimonides-portrait.jpg</small></div>'">
+            </div>
+        </div>
+
+     <!-- Maimonides Section -->
+<div class="content-section">
+    <h2>Moses Maimonides</h2>
+    <p>Moses Maimonides (1135–1204), also known as the Rambam, was a medieval Jewish philosopher, physician, and legal scholar who became one of the most influential figures in Jewish history and in the history of medicine. Born in Córdoba, Spain, and later practicing in Egypt, he revolutionized the understanding of medicine, ethics, and law.</p>
+    <p>As court physician to Sultan Saladin and his successors in Cairo, Maimonides combined profound learning with a deep sense of humanity. His medical writings, blending Greco-Arabic and Jewish traditions, were translated into Latin and shaped Islamic and European medicine for centuries. His legal pursuits led to his masterpiece, the <em>Mishneh Torah</em>, which remains a cornerstone of Jewish legal study to this day.</p>
+    <p>Maimonides also emphasized intellectual humility and lifelong learning, famously advising, <em>“Teach thy tongue to say ‘I do not know’ and thou shalt progress,”</em> a guiding principle for scholars, physicians, and leaders alike. His legacy of wisdom, compassion, humility, and integration of knowledge continues to inspire the spirit of House Maimonides.</p>
+</div>
+
+<!-- Medical Impact Section -->
+<div class="content-section">
+    <h2>Medical Impact</h2>
+    <h3>Holistic Medicine</h3>
+    <p>Promoted a comprehensive view of health that addressed physical, mental, and spiritual well-being. He emphasized preventive care, balanced lifestyle, and cultivating a strong doctor–patient relationship.</p>
+    
+    <h3>Medical Ethics</h3>
+    <p>Articulated clear principles of ethical conduct for physicians, highlighting the moral duty to serve patients with integrity, compassion, and respect — ideals that remain central to medical professionalism.</p>
+    
+    <h3>Rational Medicine</h3>
+    <p>Blended empirical observation with philosophical reasoning, advocating evidence-based approaches while recognizing the limitations of knowledge and the need for humility in medical practice.</p>
+    
+    <h3>Medical Education</h3>
+    <p>Authored systematic, accessible medical texts that educated generations of physicians. His works helped establish a foundation for formal medical education and set enduring professional standards.</p>
+</div>
+
+
+        <!-- Head of House Section -->
+<div class="content-section">
+    <h2>Head of House</h2>
+    
+    <!-- Image at the top -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <img src="head-of-house.jpeg" alt="Head of House" style="max-width: 300px; width: 100%; height: auto; border-radius: 15px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);">
+    </div>
+    
+    <!-- Introduction, Mission & Support Combined -->
+    <div style="text-align: center; margin-bottom: 2rem; padding: 1.5rem; background: rgba(220, 20, 60, 0.1); border-radius: 15px; border-left: 4px solid #DC143C;">
+        <p style="font-size: 1.2rem; margin-bottom: 0.5rem;"><strong>Hi everyone! My name is Mark,</strong></p>
+        <p style="font-style: italic; margin-bottom: 1rem;">and I'm excited to welcome you to House Maimonides.</p>
+        <p style="margin-bottom: 1rem;">I'm looking forward to helping you feel supported as you start this next chapter. My hope is to help you find your footing, connect with your classmates, and feel confident navigating both the fun and the challenges ahead.</p>
+        <p>If you ever need someone to talk to — whether it's about school, life, or just to unwind — don't hesitate to reach out.</p>
+    </div>
+    
+    <!-- Call to Action -->
+    <div style="text-align: center; padding: 1.5rem; background: linear-gradient(45deg, rgba(220, 20, 60, 0.2), rgba(178, 34, 34, 0.2)); border-radius: 15px;">
+        <p style="font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem;">Let's make it a memorable year together.</p>
+        <p style="font-size: 1.5rem; font-weight: bold; color: #DC143C;">Go Maimonides! 🦁</p>
+    </div>
+</div>
+
+<!-- Connect with House Maimonides Section -->
+<div class="content-section">
+    <h2>Connect with House Maimonides!</h2>
+    <p style="text-align: center; margin-bottom: 3rem;">Connect with your fellow House Maimonides members! Share experiences, ask questions, and build lasting friendships with your housemates.</p>
+    
+    <!-- GroupMe Section -->
+    <div style="margin-bottom: 3rem;">
+        <h3 style="text-align: center; color: #DC143C; margin-bottom: 1rem;">Join the GroupMe</h3>
+        <div class="qr-code">
+            <img src="groupme-qr.jpeg" alt="House Maimonides GroupMe QR Code" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
+        </div>
+        <p style="text-align: center; margin-top: 1rem;">Scan the QR code above with your phone's camera or GroupMe app to join instantly!</p>
+    </div>
+    
+    <!-- Discord Section -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h3 style="color: #DC143C; margin-bottom: 1rem;">Join the Discord</h3>
+        <a href="https://discord.com/invite/VAABBWFg" target="_blank" style="
+            display: inline-block;
+            background: linear-gradient(45deg, #5865F2, #7289DA);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(88, 101, 242, 0.3);
+            transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(88, 101, 242, 0.4)'" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 5px 15px rgba(88, 101, 242, 0.3)'">
+            🎮 Join Discord Server
+        </a>
+    </div>
+    
+    <p style="text-align: center; font-style: italic; margin-top: 2rem; font-size: 1.2rem; color: #DC143C;">Welcome to the House Maimonides family!</p>
+</div>
+
+        <!-- Hexagon Section -->
+        <div class="hexagon-section">
+            <div class="hexagon-item">
+                <div class="hexagon">
+                    <div class="hexagon-content">
+                        <img src="maimonides-coat-of-arms.png" alt="Coat of Arms" onerror="this.style.display='none'; this.parentNode.innerHTML='🦁'">
+                    </div>
+                </div>
+                <div class="hexagon-label">Coat of Arms</div>
+            </div>
+            <div class="hexagon-item">
+                <div class="hexagon">
+                    <div class="hexagon-content">
+                        <img src="maimonides-mascot.png" alt="Mascot" onerror="this.style.display='none'; this.parentNode.innerHTML='📚'">
+                    </div>
+                </div>
+                <div class="hexagon-label">Mascot</div>
+            </div>
+            <div class="hexagon-item">
+                <div class="hexagon">
+                    <div class="hexagon-content">
+                        <div class="house-colors">
+                            <div class="color-dot color-crimson-red"></div>
+                            <div class="color-dot color-lion-gold"></div>
+                            <div class="color-dot color-royal-orange"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hexagon-label">House Colors</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const debug = document.getElementById('debugIndicator');
+        const revealAudio = document.getElementById('revealAudio');
+
+        debug.textContent = "Phase: Intro";
+
+        setTimeout(() => {
+            document.getElementById('superimposedContent').classList.add('visible');
+            debug.textContent = "Phase: Superimposed Content Shown";
+            
+            if (revealAudio) {
+                revealAudio.volume = 0.7;
+                revealAudio.play().catch(error => {
+                    console.log('Audio autoplay prevented:', error);
+                });
+            }
+        }, 9500);
+
+        function proceedToMainContent() {
+            debug.textContent = "Phase: Proceeding to Main Content";
+            
+            if (revealAudio && !revealAudio.paused) {
+                let fadeAudio = setInterval(() => {
+                    if (revealAudio.volume > 0.1) {
+                        revealAudio.volume -= 0.1;
+                    } else {
+                        revealAudio.pause();
+                        clearInterval(fadeAudio);
+                    }
+                }, 100);
+            }
+            
+            document.getElementById('introContainer').classList.add('hidden');
+            setTimeout(() => {
+                document.getElementById('mainContainer').classList.add('visible');
+            }, 1000);
+        }
+
+        document.addEventListener('click', () => {
+            if (revealAudio && revealAudio.paused && document.getElementById('superimposedContent').classList.contains('visible')) {
+                revealAudio.play().catch(error => {
+                    console.log('Audio play failed:', error);
+                });
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
